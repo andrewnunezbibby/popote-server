@@ -7,7 +7,7 @@ const {
   MessageChannel,
 } = require("worker_threads");
 // var dayInMilliseconds = 1000 * 60 * 60 * 24;
-var dayInMilliseconds = 5000;
+var dayInMilliseconds = 10000;
 
 var runWorker = () => {
   const worker = new Worker(path.join(__dirname, "dbCacheWorker.js"), {

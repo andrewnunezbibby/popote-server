@@ -56,11 +56,6 @@ class SpoonacularApi {
       let match = this.recipeDetails.find(
         (details) => details.id === recipe.id
       );
-      // let cuisines = match.cuisines
-      // let courses = match.dishTypes
-      // let diets = match.diets
-      // let tags = [...diets, ...courses, ...cuisines]
-      // this.createTagObject()
       let tags = match.cuisines;
       tags.push(...match.dishTypes);
       tags.push(...match.diets);
@@ -93,7 +88,9 @@ class SpoonacularApi {
     const date = Date.now();
     const content = `const recipes = ${JSON.stringify(
       recipes
-    )} \n const ingredients = ${JSON.stringify(ingredients)}`;
+    )} \n const ingredients = ${JSON.stringify(
+      ingredients
+    )} \n module.exports = {recipes, ingredients}`;
     fs.writeFile(
       `./bin/apiResponseGroups/dbRes-${date}.js`,
       content,

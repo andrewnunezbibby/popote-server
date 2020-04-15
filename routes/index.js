@@ -57,9 +57,9 @@ router.get("/recipes/ingredients", function (req, res, next) {
     return RecipeModel.find({ summary: { $regex: regex } });
   });
 
-  const spoonpiPromises = ingredients.map((i) => {
+  const spoonpiPromises = ingredients.map((ingredient) => {
     const spoonpi = new SpoonacularApi();
-    return spoonpi.handleBackupCall(ingredients);
+    return spoonpi.handleBackupCall(ingredient);
   });
 
   Promise.all(dbPromises)
