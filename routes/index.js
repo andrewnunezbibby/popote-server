@@ -4,64 +4,77 @@ const tagModel = require("../models/Tag");
 const IngredientModel = require("../models/Ingredient");
 const UserModel = require("../models/User");
 const RecipeModel = require("../models/Recipe");
+const SpoonacularApi = require("../api/SpoonacularApi");
 
 /* GET home page. */
-router.get("/", function(req, res, next) {
+router.get("/", function (req, res, next) {
   tagModel
     .find()
-    .then(apiRes => {
+    .then((apiRes) => {
       res.status(200).json({ apiRes });
     })
-    .catch(apiErr => console.error(apiRes));
+    .catch((apiErr) => console.error(apiRes));
 });
 
 /* GET ingredients list   */
-router.get("/ingredients", function(req, res) {
+router.get("/ingredients", function (req, res) {
   IngredientModel.find()
-    .then(ingredients => {
+    .then((ingredients) => {
       res.status(200).json(ingredients);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
 /*get recipe page detail */
-router.get("/recipe/:recipeId", function(req, res) {
+router.get("/recipe/:recipeId", function (req, res) {
   RecipeModel.findById(req.params.recipeId)
-    .then(recipe => {
+    .then((recipe) => {
       res.status(200).json(recipe);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
 
 /*get all recipes available in the database */
-router.get("/recipes", function(req, res) {
+router.get("/recipes", function (req, res) {
   RecipeModel.find(req.params.recipeId)
-    .then(recipes => {
+    .then((recipes) => {
       res.status(200).json(recipes);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
 // get all the recipes matching the summary or ingredients need to see
 
-router.get("/recipes/ingredients", function(req, res, next) {
+router.get("/recipes/ingredients", function (req, res, next) {
   const ingredients = req.query.ingredients.split(",");
 
-  const promises = ingredients.map(i => {
+  const dbPromises = ingredients.map((i) => {
     const regex = new RegExp(i, "gi");
     return RecipeModel.find({ summary: { $regex: regex } });
   });
 
-  Promise.all(promises)
-    .then(recipes => {
+  const spoonpiPromises = ingredients.map((i) => {
+    const spoonpi = new SpoonacularApi();
+    return spoonpi.handleBackupCall(ingredients);
+  });
+
+  Promise.all(dbPromises)
+    .then((recipes) => {
       const uniquifiedFlattenReceipes = [...new Set(recipes.flat())];
-      res.status(200).json(uniquifiedFlattenReceipes);
+      if (uniquifiedFlattenReceipes.length === 0) {
+        Promise.all(spoonpiPromises).then((spoonpiRecipes) => {
+          const spoonpiFlattened = [...new Set(spoonpiRecipes.flat())];
+          res.status(200).json(spoonpiFlattened);
+        });
+      } else {
+        res.status(200).json(uniquifiedFlattenReceipes);
+      }
     })
-    .catch(err => {
+    .catch((err) => {
       next(err);
     });
 });
@@ -70,10 +83,10 @@ router.get("/recipes/ingredients", function(req, res, next) {
 router.get("/favorites/:userId", (req, res) => {
   UserModel.findById(req.params.userId)
     .populate({ path: "favorites", model: RecipeModel })
-    .then(recipes => {
+    .then((recipes) => {
       res.status(200).json(recipes);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
@@ -85,17 +98,17 @@ router.patch("/favorites/:userId/:recipeId", (req, res, next) => {
   UserModel.findByIdAndUpdate(
     req.params.userId,
     {
-      $push: { favorites: req.params.recipeId }
+      $push: { favorites: req.params.recipeId },
     },
     {
-      new: true
+      new: true,
     }
   )
-    .then(dbRes => {
+    .then((dbRes) => {
       console.log(dbRes);
       res.status(200).json(dbRes);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
@@ -106,17 +119,17 @@ router.delete("/favorites/:userId/:recipeId", (req, res, next) => {
   UserModel.findByIdAndUpdate(
     req.params.userId,
     {
-      $pull: { favorites: req.params.recipeId }
+      $pull: { favorites: req.params.recipeId },
     },
     {
-      new: true
+      new: true,
     }
   )
-    .then(dbRes => {
+    .then((dbRes) => {
       console.log(dbRes);
       res.status(200).json(dbRes);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 });
