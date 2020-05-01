@@ -7,7 +7,7 @@ const {
   MessageChannel,
 } = require("worker_threads");
 // var dayInMilliseconds = 1000 * 60 * 60 * 24;
-var dayInMilliseconds = 10000;
+// var dayInMilliseconds = 10000;
 
 var runWorker = () => {
   const worker = new Worker(path.join(__dirname, "dbCacheWorker.js"), {
@@ -20,6 +20,6 @@ var runWorker = () => {
   worker.postMessage({ port: port2 }, [port2]);
 };
 
-var workerInterval = setInterval(runWorker, dayInMilliseconds);
+// var workerInterval = setInterval(runWorker, dayInMilliseconds);
 
-module.exports = workerInterval;
+// module.exports = workerInterval;
